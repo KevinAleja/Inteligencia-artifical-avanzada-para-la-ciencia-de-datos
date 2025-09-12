@@ -1,0 +1,21 @@
+==========================================================
+Grafica para el primer arbol
+Poner hasta el final del archivo Implementacion_rf_cv.py
+si se quiere visualizar. De igual forma se puede cambiar
+el indice [0] por otro para ver otro arbol
+==========================================================
+
+# Elige un árbol del bosque (por ejemplo, el primero)
+arbol = best_rf.estimators_[0]
+
+# Limita la profundidad para visualización
+plt.figure(figsize=(20, 10))
+tree.plot_tree(arbol, 
+               feature_names=caracteristicas,  # Tus features: ['Temperature', 'Exhaust_vacuum']
+               filled=True, 
+               rounded=True,
+               fontsize=8,
+               max_depth=3) 
+
+plt.title("Primer árbol del RF", fontsize=16)
+plt.show()
