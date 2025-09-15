@@ -8,7 +8,7 @@ Codigo que implementa una regresión lineal para el calculo del
 #n de miliwatts/hr de una planta de energía de ciclo combinado
 
 NOTA: Si se quiere ver cambio entre más o menos features, descomentar/comentar las 
-lineas 56, 165, 233
+lineas 58, 179, 261
 
 Kevin Alejandro Ramírez Luna | A01711063@tec.mx
 ===============================================================================
@@ -93,14 +93,18 @@ def hipotesis(X, theta, b):
     """y = b + theta * X"""
     return b + (X @ theta) # Multiplición entre matrices
 
-def MSE(X, y, theta, b):
+def MSE(X, y, theta, b, l2=0.0):
     """Error Cuadrático Medio"""
     m = len(y)
     y_predicha = hipotesis(X, theta, b)
     error = y_predicha - y
-    return np.mean(error ** 2)
+    mse = np.mean(error ** 2)
 
-def calcular_gradientes(X_batch, y_batch, theta, b):
+    l2_m = (l2 / (2 * m)) * np.sum(theta ** 2) #  w = w - 𝛂* gradiente  + ƛ/(2*m)||w||22 
+
+    return mse + l2_m
+
+def calcular_gradientes(X_batch, y_batch, theta, b, l2 =0.0):
     """Cálculo de gradientes"""
     m_batch = len(X_batch)
     predicciones = hipotesis(X_batch, theta, b)
@@ -113,10 +117,13 @@ def calcular_gradientes(X_batch, y_batch, theta, b):
     grad_theta = np.zeros_like(theta) #Inicializamos en 0
     for j in range(len(theta)):
         grad_theta[j] = np.mean(error * X_batch[:, j])
+
+        # Gradientes con l2
+        grad_theta[j] += (l2 / m_batch) * theta[j] #  w = (1-  𝛂*ƛ/m)*w - 𝛂* gradiente 
     
     return grad_theta, grad_b
 
-def GD(X, y, theta_inicial, b_inicial, a, epochs):
+def GD(X, y, theta_inicial, b_inicial, a, epochs, l2=0.0):
     """Implementación del Descenso de Gradiente(GD)"""
     theta = theta_inicial.copy()
     b = b_inicial
@@ -127,14 +134,14 @@ def GD(X, y, theta_inicial, b_inicial, a, epochs):
     
     for epoch in range(epochs):
         # Calcular gradientes con todo el conjunto de datos
-        grad_theta, grad_b = calcular_gradientes(X, y, theta, b)
+        grad_theta, grad_b = calcular_gradientes(X, y, theta, b, l2)
         
         # Actualizar parámetros
         theta -= a * grad_theta #Lerning rate * gradiente
         b -= a * grad_b
         
         # Monitoreo del error
-        error_epoch = MSE(X, y, theta, b)
+        error_epoch = MSE(X, y, theta, b, l2)
         historial_error.append(error_epoch)
         
         # Guardar mejores parámetros
@@ -156,11 +163,12 @@ theta_inicial = np.zeros(n_caracteristicas) #Vector de 0´s en relacion al numer
 b_inicial = 0.0
 learning_rate = 0.1 # Lerning rate chiquito para que los gradientes convergan relativamente lento
 epochs = 200
+l2 = 0.1  # Valor de lambda para el proceso de regularización :D
 
 # Asignación de los mejores datos para nuestro modelo
 theta_entrenado, b_entrenado, historial_error = GD(
     X_train, y_train, theta_inicial, b_inicial,
-    learning_rate, epochs
+    learning_rate, epochs, l2
 )
 
 # 8. Evaluación
